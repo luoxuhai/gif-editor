@@ -1,0 +1,11 @@
+.upload {
+  width: 380px;
+  height: 380px;
+}
+.uploadLine {
+  margin-top: 20px;
+}
+
+#canvas {
+  background-color: rgb(43, 45, 55);
+}
