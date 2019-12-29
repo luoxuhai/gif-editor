@@ -24,3 +24,45 @@ export function createGIF(images: Array<string>, options: object): Promise<Funct
     );
   });
 }
+
+export function loadedImg(image: any) {
+  return new Promise(resolve => {
+    image.onload = (e: any) => {
+      resolve(e);
+    };
+  });
+}
+
+/**
+ * @param {Number} sx 固定盒子的x坐标,sy 固定盒子的y左标
+ * @param {Number} boxW 固定盒子的宽, boxH 固定盒子的高
+ * @param {Number} sourceW 原图片的宽, sourceH 原图片的高
+ * @return {Object} {drawImage的参数，缩放后图片的x坐标，y坐标，宽和高},对应drawImage(imageResource, dx, dy, dWidth, dHeight)
+ */
+
+export function containImg(
+  sx: number,
+  sy: number,
+  boxW: number,
+  boxH: number,
+  sourceW: number,
+  sourceH: number,
+) {
+  let dx = sx,
+    dy = sy,
+    dWidth = boxW,
+    dHeight = boxH;
+  if (sourceW > sourceH || (sourceW === sourceH && boxW < boxH)) {
+    dHeight = (sourceH * dWidth) / sourceW;
+    dy = sy + (boxH - dHeight) / 2;
+  } else if (sourceW < sourceH || (sourceW === sourceH && boxW > boxH)) {
+    dWidth = (sourceW * dHeight) / sourceH;
+    dx = sx + (boxW - dWidth) / 2;
+  }
+  return {
+    dx,
+    dy,
+    dWidth,
+    dHeight,
+  };
+}

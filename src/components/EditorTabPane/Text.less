@@ -1,0 +1,41 @@
+@import '../../utils//utils.less';
+
+.textWrapper {
+  padding: 20px 0;
+  & > * {
+    margin-bottom: 25px;
+  }
+
+  .text__color {
+    .colorPicker {
+      width: 62px;
+      height: 34px;
+      border-radius: 4px;
+    }
+  }
+
+  .text__font {
+    .font__select {
+      margin-right: 20px;
+    }
+  }
+
+  .text__effect {
+    .effect__list {
+      display: flex;
+      align-items: center;
+      padding: 0;
+      list-style: none;
+
+      .effect__item {
+        .center;
+        width: 63px;
+        height: 44px;
+        margin-right: 10px;
+        border-radius: 2px;
+        background: rgba(43, 45, 55, 1);
+        cursor: pointer;
+      }
+    }
+  }
+}

@@ -16,13 +16,13 @@ const config: IConfig = {
       'umi-plugin-react',
       {
         antd: true,
-        dva: {
-          immer: true,
+        dva: true,
+        dynamicImport: {
+          webpackChunkName: true,
         },
-        dynamicImport: true,
         title: 'GIF设计工具',
         dll: false,
-
+        fastClick: true,
         routes: {
           exclude: [/components\//],
         },

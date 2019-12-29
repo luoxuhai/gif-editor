@@ -1,0 +1,29 @@
+@import '../../utils//utils.less';
+
+.watermark {
+  padding: 20px 0;
+  & > * {
+    margin-bottom: 25px;
+  }
+
+  .watermark_list {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0;
+    list-style: none;
+
+    .watermark__item {
+      width: 72px;
+      height: 72px;
+      margin: 10px;
+      background: #eee;
+      cursor: pointer;
+      img {
+        width: 100%;
+        height: 100%;
+        border-radius: 2px;
+        object-fit: contain;
+      }
+    }
+  }
+}

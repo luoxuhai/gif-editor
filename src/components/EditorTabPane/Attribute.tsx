@@ -23,7 +23,7 @@ class Attribute extends Component {
             max={4}
             step={0.25}
             marks={marks}
-            tipFormatter={val => `${val} x`}
+            tipFormatter={(val: any) => `${val} x`}
           />
         </div>
 
