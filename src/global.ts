@@ -1,0 +1,1 @@
+window.CANVAS_WIDTH = 420;

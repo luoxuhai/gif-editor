@@ -15,6 +15,7 @@ export function createGIF(images: Array<string>, options: object): Promise<Funct
     gifshot.createGIF(
       {
         images,
+        numWorkers: 5,
         ...options,
       },
       (obj: any) => {
@@ -65,4 +66,16 @@ export function containImg(
     dWidth,
     dHeight,
   };
+}
+
+/**
+ * 下载文件
+ * @param {String} src 资源地址
+ * @param {String} fileName 文件名
+ */
+export function download(src: string, fileName: string) {
+  const downloadElement = document.createElement('a');
+  downloadElement.href = src;
+  downloadElement.download = fileName;
+  downloadElement.click();
 }

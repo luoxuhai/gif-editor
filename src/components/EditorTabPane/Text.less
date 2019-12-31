@@ -1,9 +1,56 @@
 @import '../../utils//utils.less';
 
+@keyframes scale-animation {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shake-animation {
+  0%,
+  50%,
+  100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-5px);
+  }
+  75% {
+    transform: translateY(5px);
+  }
+}
+
+@keyframes flash-animation {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 .textWrapper {
   padding: 20px 0;
   & > * {
     margin-bottom: 25px;
+  }
+
+  .text__style {
+    display: flex;
+    align-items: center;
+
+    .text__color {
+      margin-right: 50px;
+    }
   }
 
   .text__color {
@@ -29,12 +76,34 @@
 
       .effect__item {
         .center;
-        width: 63px;
-        height: 44px;
-        margin-right: 10px;
-        border-radius: 2px;
+        width: 83px;
+        height: 55px;
+        margin-right: 20px;
+        border-radius: 4px;
         background: rgba(43, 45, 55, 1);
+        color: white;
+        font-size: 18px;
         cursor: pointer;
+
+        p {
+          margin: 0;
+        }
+
+        &:nth-child(2) {
+          p {
+            animation: scale-animation 600ms linear infinite;
+          }
+        }
+        &:nth-child(3) {
+          p {
+            animation: flash-animation 600ms linear infinite;
+          }
+        }
+        &:nth-child(4) {
+          p {
+            animation: shake-animation 600ms linear infinite;
+          }
+        }
       }
     }
   }

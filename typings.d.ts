@@ -6,5 +6,8 @@ declare module 'gifshot';
 declare module 'antd';
 interface Window {
   canvas: any;
+  hiddenCanvas: any;
   g_app: any;
+  interval: any;
+  CANVAS_WIDTH: number;
 }

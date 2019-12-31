@@ -9,3 +9,11 @@ body,
 body {
   margin: 0;
 }
+
+.ant-slider-mark-text:nth-child(1) {
+  left: 2% !important;
+}
+
+.canvas-container:nth-child(2) {
+  display: none;
+}

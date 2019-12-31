@@ -9,6 +9,7 @@
 
 # production
 /dist
+/.history
 
 # misc
 .DS_Store

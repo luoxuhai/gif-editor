@@ -1,26 +1,94 @@
 import React, { Component } from 'react';
 import { Slider, Select } from 'antd';
+import { connect } from 'dva';
 import styles from './Attribute.less';
+
 const marks: any = {
-  0.25: '0.25 x',
-  1: '1 x',
-  2: '2 x',
-  3: '3 x',
-  4: '4 x',
+  0.25: '0.25x',
+  1: '1x',
+  2: '2x',
+  3: '3x',
 };
 
-class Attribute extends Component {
-  state: object = {};
+const measures: Array<any> = [
+  {
+    title: '240P(适合表情分享)',
+    width: 240,
+  },
+  {
+    title: '360P(适合公众号素材)',
+    width: 360,
+  },
+  {
+    title: '720P(适合高清海报)',
+    width: 720,
+  },
+  {
+    title: '原图尺寸(最大1280P)',
+    width: 1280,
+  },
+];
 
-  render() {
+const qualitys: Array<any> = [
+  {
+    title: '压缩',
+    value: 500,
+  },
+  {
+    title: '标清',
+    value: 250,
+  },
+  {
+    title: '高清',
+    value: 10,
+  },
+  {
+    title: '原图',
+    value: 1,
+  },
+];
+
+export default connect(({ global }: any) => ({ ...global }))(
+  ({ images, canvasImages, GIFInfo, speed, dispatch }: Props): JSX.Element => {
+    let i: number = 0;
+    function drawerGIFInterval() {
+      if (i >= images.length) i = 0;
+      // TODO: 防止闪烁
+      for (const index of canvasImages.keys()) {
+        let visible: boolean = false;
+        if (index === i) visible = true;
+        canvasImages[index].setOptions({
+          visible,
+        });
+      }
+      i++;
+
+      try {
+        window.canvas?.renderAll();
+      } catch (e) {}
+    }
+
+    function handleChangeSpeed(speed: number) {
+      dispatch({
+        type: 'global/setSpeed',
+        payload: speed,
+      });
+
+      clearInterval(window.interval);
+      window.interval = setInterval(drawerGIFInterval, GIFInfo.interval / speed);
+    }
+
+    measures[3].width = GIFInfo.width;
+
     return (
       <div className={styles.attribute}>
         <div className={styles.speedSlider}>
           <h3>播放速度</h3>
           <Slider
-            defaultValue={1}
+            onChange={handleChangeSpeed}
+            value={speed}
             min={0.25}
-            max={4}
+            max={3}
             step={0.25}
             marks={marks}
             tipFormatter={(val: any) => `${val} x`}
@@ -28,28 +96,47 @@ class Attribute extends Component {
         </div>
 
         <div className={styles.select}>
+          {/* FIXME: 尺寸选择 */}
           <div className={styles.measure}>
             <h3>尺寸选择</h3>
-            <Select defaultValue="lucy" style={{ width: 180 }}>
-              <Select.Option value="jack">240P(适合表情分享)</Select.Option>
-              <Select.Option value="lucy">360P(适合公众号素材)</Select.Option>
-              <Select.Option value="jack">720P(适合高清海报)</Select.Option>
-              <Select.Option value="jack">原图尺寸(最大1280P)</Select.Option>
+            <Select
+              onSelect={(outWidth: number) =>
+                dispatch({
+                  type: 'global/saveGIFInfo',
+                  payload: { outWidth },
+                })
+              }
+              value={GIFInfo.outWidth}
+              style={{ width: 180 }}
+            >
+              {measures.map(measure => (
+                <Select.Option value={measure.width} key={measure.title}>
+                  {measure.title}
+                </Select.Option>
+              ))}
             </Select>
           </div>
           <div>
             <h3>画质选择</h3>
-            <Select defaultValue="lucy" style={{ width: 120 }}>
-              <Select.Option value="jack">压缩</Select.Option>
-              <Select.Option value="lucy">标清</Select.Option>
-              <Select.Option value="jack">高清</Select.Option>
-              <Select.Option value="jack">原图</Select.Option>
+            <Select
+              onSelect={(quality: number) =>
+                dispatch({
+                  type: 'global/saveGIFInfo',
+                  payload: { quality },
+                })
+              }
+              defaultValue={10}
+              style={{ width: 120 }}
+            >
+              {qualitys.map(quality => (
+                <Select.Option value={quality.value} key={quality.value}>
+                  {quality.title}
+                </Select.Option>
+              ))}
             </Select>
           </div>
         </div>
       </div>
     );
-  }
-}
-
-export default Attribute;
+  },
+);

@@ -1,48 +1,70 @@
-import { createGIF } from '../utils/utils';
-import { createText } from '../utils/helper';
+import { setCanvasText } from '../utils/helper';
 
 export default {
   namespace: 'global',
 
   state: {
-    gifFile: '',
-    texts: [],
-    markOptions: [],
-    options: {},
+    GIFInfo: { name: '', width: 420, height: 420, outWidth: 360, quality: 10, interval: 41 },
+    GIFOptions: {
+      filter: {
+        filterObject: null,
+        css: 'none',
+      },
+    },
     activeObject: null,
+    images: [],
+    canvasImages: [],
+    speed: 1,
   },
 
   subscriptions: {},
 
-  effects: {
-    *generateGIF({ payload }: any) {
-      try {
-        const result = yield createGIF(payload, {});
-      } catch (e) {}
-    },
-  },
+  effects: {},
 
   reducers: {
-    saveGIF(state: any, { payload }: any) {
-      return { ...state, currentHref: payload };
+    setSpeed(state: any, { payload }: any) {
+      return { ...state, speed: payload };
+    },
+
+    saveGIFInfo(state: any, { payload }: any) {
+      return { ...state, GIFInfo: { ...state.GIFInfo, ...payload } };
     },
 
     saveActiveObject(state: any, { payload }: any) {
       return { ...state, activeObject: payload };
     },
 
-    saveAttributeOptions(state: any, { payload }: any) {
-      return { ...state, options: payload };
-    },
-
     addText(state: any, { payload }: any) {
-      createText(payload.content, payload.options);
-      state.texts.push(payload);
-      return { ...state, texts: state.texts, activeObject: window.canvas.getActiveObject() };
+      setCanvasText(payload.options, payload.content);
+      return { ...state, activeObject: window.canvas.getActiveObject() };
     },
 
-    setTextOptions(state: any, { payload }: any) {
-      return { ...state, texts: payload };
+    saveGIFImages(state: any, { payload: { images, canvasImages } }: any) {
+      return {
+        ...state,
+        images: images || state.images,
+        canvasImages: canvasImages || state.canvasImages,
+      };
+    },
+
+    setGIFOptions(state: any, { payload }: any) {
+      return { ...state, GIFOptions: { ...state.GIFOptions, ...payload } };
+    },
+
+    clear(state: any) {
+      return {
+        ...state,
+        canvasImages: [],
+        images: [],
+        GIFOptions: {
+          filter: {
+            filterObject: null,
+            css: 'none',
+          },
+        },
+        activeObject: null,
+        speed: 1,
+      };
     },
   },
 };

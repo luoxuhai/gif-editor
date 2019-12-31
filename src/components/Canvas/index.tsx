@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Upload, Icon, Button, message, Spin } from 'antd';
 import { connect } from 'dva';
 import { fabric } from 'fabric';
-import Libgif from 'libgif';
-import { canvasToFile, containImg, loadedImg } from '../../utils/utils';
+import SuperGif from 'libgif';
+import { canvasToFile, loadedImg } from '../../utils/utils';
 import styles from './index.less';
 
-const CANVAS_WIDTH: number = 420;
-let canvasHeight: number = CANVAS_WIDTH;
+const { CANVAS_WIDTH } = window;
+let canvasHeight: number = window.CANVAS_WIDTH;
 
 export default connect(({ global }: any) => ({ ...global }))(
-  ({ dispatch }: Props): JSX.Element => {
+  ({ canvasImages, GIFInfo, dispatch }: Props): JSX.Element => {
     const [file, setFile]: any = useState(null);
     const imgOptions: any = {
       selectable: false,
@@ -18,39 +18,37 @@ export default connect(({ global }: any) => ({ ...global }))(
       originX: 'left',
       originY: 'top',
     };
-    const gifInfo: any = { interval: 41 };
-    let imgList: Array<any> = [];
-    let interval: any = null;
-    let canvasImgs: Array<any> = [];
+    let images: Array<any> = [];
     let i: number = 0;
 
     function drawerGIFInterval() {
-      if (i >= imgList.length) i = 0;
+      if (i >= images.length) i = 0;
       // TODO: 防止闪烁
-      canvasImgs.forEach((item, index) => {
+      for (const index of canvasImages.keys()) {
         let visible: boolean = false;
         if (index === i) visible = true;
-        canvasImgs[index].setOptions({
-          ...imgOptions,
+        canvasImages[index].setOptions({
           visible,
         });
-      });
+      }
       i++;
 
-      window.canvas.renderAll();
+      try {
+        window.canvas?.renderAll();
+      } catch (e) {}
     }
 
     async function drawerGIF() {
       message.success({ content: '加载完成!', key: 'updatable', duration: 2 });
 
-      canvasImgs = await Promise.all(
-        imgList.map((img: any) => {
+      canvasImages = await Promise.all(
+        images.map((img: any) => {
           return new Promise(resolve => {
             fabric.Image.fromURL(
               img.url,
-              oImg => {
-                resolve(oImg);
+              (oImg: any) => {
                 window.canvas.add(oImg);
+                resolve(oImg);
               },
               imgOptions,
             );
@@ -58,28 +56,29 @@ export default connect(({ global }: any) => ({ ...global }))(
         }),
       );
 
-      interval = setInterval(drawerGIFInterval, gifInfo.interval);
+      dispatch({
+        type: 'global/saveGIFImages',
+        payload: { canvasImages },
+      });
+      window.interval = setInterval(drawerGIFInterval, GIFInfo.interval);
     }
 
     function initCanvas(): void {
       window.canvas = new fabric.Canvas('canvas', {
         backgroundColor: 'rgb(43,45,55)',
-        selectionColor: 'rgba(0,160,233,0.5)',
-        selectionLineWidth: 1,
+        selection: false,
       });
 
-      window.canvas.setHeight(canvasHeight);
-      // 保存当前活动对象
-      window.canvas.on('mouse:down', (e: any) => {
-        dispatch({
-          type: 'global/saveActiveObject',
-          payload: window.canvas.getActiveObject(),
+      window.canvas
+        .setWidth(CANVAS_WIDTH)
+        .setHeight(canvasHeight)
+        // 保存当前活动对象
+        .on('mouse:down', () => {
+          dispatch({
+            type: 'global/saveActiveObject',
+            payload: window.canvas.getActiveObject(),
+          });
         });
-      });
-
-      // canvas.on('mouse:up:before', (e: any) => {
-      //   interval = setInterval(drawerGIFInterval, 200);
-      // });
     }
 
     async function resolveGIF(source: File) {
@@ -95,46 +94,72 @@ export default connect(({ global }: any) => ({ ...global }))(
       await loadedImg(image);
       const { width, height } = image;
       const scale: number = CANVAS_WIDTH / width;
-      canvasHeight = (height * 420) / width;
+      canvasHeight = (height * CANVAS_WIDTH) / width;
       // TODO: 缩放图片不能修改width, height属性
       Object.assign(imgOptions, { scaleX: scale, scaleY: scale });
+      GIFInfo.width = width;
+      GIFInfo.height = height;
 
-      const gif = new Libgif({ gif: imgEl });
+      const gif = new SuperGif({ gif: imgEl });
       gif.load(() => {
-        gifInfo.interval = gif.get_duration_ms() / gif.get_length();
+        GIFInfo.interval = gif.get_duration_ms() / gif.get_length();
+        dispatch({
+          type: 'global/saveGIFInfo',
+          payload: GIFInfo,
+        });
         for (let i: number = 1; i <= gif.get_length(); i++) {
           // 遍历gif实例的每一帧
           gif.move_to(i);
           const file = canvasToFile(gif.get_canvas(), `gif-${i}`);
           // 将每一帧的canvas转换成file对象
-          imgList.push({
+          images.push({
             name: file.name,
             url: URL.createObjectURL(file),
             file,
           });
         }
+        dispatch({
+          type: 'global/saveGIFImages',
+          payload: { images },
+        });
         drawerGIF();
+      });
+    }
+
+    function clear() {
+      clearInterval(window.interval);
+      images.splice(0);
+      window.canvas?.dispose();
+      dispatch({
+        type: 'global/clear',
       });
     }
 
     useEffect(() => {}, []);
 
-    async function handleSelectImg({ file }: any) {
+    async function handleUploadGIF({ file }: any) {
       if (file.status !== 'uploading') {
-        message.loading({ content: '加载中...', key: 'updatable' });
-        await resolveGIF(file.originFileObj);
-        setFile(file);
-        initCanvas();
+        const { originFileObj } = file;
+        if (!/(\.*.gif$)/.test(originFileObj.name)) message.error('请上传gif格式照片！');
+        else {
+          message.loading({ content: '加载中...', key: 'updatable', duration: 0 });
+          clear();
+          await resolveGIF(originFileObj);
+          setFile(file);
+          initCanvas();
+          GIFInfo.name = originFileObj.name.split('.')[0];
+        }
       }
     }
 
-    const uploadProps = { multiple: false, showUploadList: false, onChange: handleSelectImg };
+    const uploadProps = { multiple: false, showUploadList: false, onChange: handleUploadGIF };
 
     return (
       <div>
         {file ? (
           <div>
             <canvas id="canvas" width={CANVAS_WIDTH} height={CANVAS_WIDTH} />
+            <canvas id="hiddenCanvas" style={{ display: 'none' }} />
             <Upload {...uploadProps}>
               <Button className={styles.uploadLine} type="primary" size="large">
                 <Icon type="upload" />
