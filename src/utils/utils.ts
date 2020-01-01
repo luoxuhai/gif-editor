@@ -79,3 +79,11 @@ export function download(src: string, fileName: string) {
   downloadElement.download = fileName;
   downloadElement.click();
 }
+
+export function setTimeoutSync(time: number) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve('done');
+    }, time);
+  });
+}

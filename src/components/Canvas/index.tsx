@@ -22,7 +22,7 @@ export default connect(({ global }: any) => ({ ...global }))(
     let i: number = 0;
 
     function drawerGIFInterval() {
-      if (i >= images.length) i = 0;
+      if (i >= canvasImages.length) i = 0;
       // TODO: 防止闪烁
       for (const index of canvasImages.keys()) {
         let visible: boolean = false;
@@ -127,9 +127,13 @@ export default connect(({ global }: any) => ({ ...global }))(
     }
 
     function clear() {
-      clearInterval(window.interval);
+      const { canvas, interval } = window;
+      canvas?.getObjects().forEach((obj: any) => {
+        if (obj.type === 'textbox') clearInterval(obj?.animateInterval);
+      });
+      clearInterval(interval);
       images.splice(0);
-      window.canvas?.dispose();
+      canvas?.dispose();
       dispatch({
         type: 'global/clear',
       });
@@ -159,7 +163,8 @@ export default connect(({ global }: any) => ({ ...global }))(
         {file ? (
           <div>
             <canvas id="canvas" width={CANVAS_WIDTH} height={CANVAS_WIDTH} />
-            <canvas id="hiddenCanvas" style={{ display: 'none' }} />
+            {/* 导出canvas 暂时不需要 */}
+            {/* <canvas id="hiddenCanvas" style={{ display: 'none' }} /> */}
             <Upload {...uploadProps}>
               <Button className={styles.uploadLine} type="primary" size="large">
                 <Icon type="upload" />

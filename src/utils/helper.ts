@@ -2,8 +2,9 @@ import { fabric } from 'fabric';
 
 /**
  * 设置文本
- * @param options 配置
- * @param content 内容
+ *
+ * @param {*} [options=null] 配置
+ * @param {string} [content=''] 内容
  */
 export function setCanvasText(options: any = null, content: string = '') {
   const defaultOptions = {
@@ -18,9 +19,13 @@ export function setCanvasText(options: any = null, content: string = '') {
     cornerColor: '#1890ff',
   };
 
+  const { canvas } = window;
+
   // 删除文本
   if (!options && !content) {
-    window.canvas?.remove(window.canvas.getActiveObject());
+    // 清除遗留定时器
+    clearInterval(canvas?.getActiveObject()?.animateInterval);
+    canvas?.remove(canvas?.getActiveObject());
     return;
   }
 
@@ -30,30 +35,32 @@ export function setCanvasText(options: any = null, content: string = '') {
       ...defaultOptions,
       ...options,
     });
-    window.canvas?.add(text)?.setActiveObject(text);
+    canvas?.add(text)?.setActiveObject(text);
   } else {
     // 修改文本
-    window.canvas?.getActiveObject()?.setOptions(options);
+    canvas?.getActiveObject()?.setOptions(options);
     try {
-      window.canvas?.renderAll();
+      canvas?.renderAll();
     } catch (e) {}
   }
 }
+
 /**
  * 设置图片
- * @param options 配置
- * @param src 内容
+ *
+ * @param {string} [src=''] 图片资源
  */
 export function setCanvasImage(src: string = '') {
+  const { canvas, g_app } = window;
   if (src) {
     // 新增图片
     fabric.Image.fromURL(
       src,
       (oImg: any) => {
-        window.canvas?.add(oImg)?.setActiveObject(oImg);
-        window.g_app._store.dispatch({
+        canvas?.add(oImg)?.setActiveObject(oImg);
+        g_app._store.dispatch({
           type: 'global/saveActiveObject',
-          payload: window.canvas?.getActiveObject(),
+          payload: canvas?.getActiveObject(),
         });
       },
       {
@@ -65,5 +72,5 @@ export function setCanvasImage(src: string = '') {
     );
 
     // 删除图片
-  } else window.canvas?.remove(window.canvas.getActiveObject());
+  } else canvas?.remove(canvas?.getActiveObject());
 }

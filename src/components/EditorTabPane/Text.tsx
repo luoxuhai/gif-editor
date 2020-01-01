@@ -3,7 +3,9 @@ import { Button, Popover, Select, Upload, Icon, message } from 'antd';
 import { SketchPicker } from 'react-color';
 import { fabric } from 'fabric';
 import { connect } from 'dva';
+import _ from 'lodash';
 import { setCanvasText } from '../../utils/helper';
+import { setTimeoutSync } from '../../utils/utils';
 import styles from './Text.less';
 
 const { util: fabricUtil } = fabric;
@@ -50,16 +52,42 @@ const fontStyles: any[] = [
   },
 ];
 
+const effects: any[] = [
+  {
+    title: '无',
+    animate: undefined,
+  },
+  {
+    title: '缩放',
+    animate: 'scale',
+  },
+  {
+    title: '闪烁',
+    animate: 'flash',
+  },
+  {
+    title: '抖动',
+    animate: 'shake',
+  },
+  {
+    title: '渐变',
+    animate: 'gradient',
+  },
+];
+
 export default connect(({ global }: any) => ({
   ...global,
 }))(
   ({ activeObject, dispatch }: Props): JSX.Element => {
     const [color, setColor] = useState('#f00');
     const [customFont, setCustomFont]: any = useState([]);
+    // TODO: 解决dispatch后不重新渲染问题
+    const [updated, shouldUpdate] = useState(false);
 
     function handleChangeColor({ hex }: any) {
       setColor(hex);
-      setCanvasText({ fill: hex });
+      if (activeObject?.oldFill) setCanvasText({ oldFill: hex });
+      else setCanvasText({ fill: hex });
     }
 
     function handleAddText() {
@@ -121,21 +149,119 @@ export default connect(({ global }: any) => ({
       );
     }
 
-    function handleTextEffectClick(_animate?: MouseEvent) {
-      setInterval(() => {
-        window.canvas?.getActiveObject()?.animate(
-          {
-            scaleX: '+=0.3',
-            scaleY: '+=0.3',
+    // TODO: 字体动效 待重构
+    async function handleTextEffectClick(animateType: any) {
+      const [textObject]: any[] = window.canvas
+        .getObjects()
+        .filter((e: any) => e.type === 'textbox' && _.isEqual(activeObject, e));
+
+      // 清除遗留定时器
+      clearInterval(textObject?.animateInterval);
+      textObject.animateType = animateType;
+      shouldUpdate(!updated);
+      dispatch({
+        type: 'global/saveActiveObject',
+        payload: textObject,
+      });
+
+      if (textObject.oldFill) {
+        // ? 防止颜色恢复
+        await setTimeoutSync(500);
+        textObject.set('fill', textObject.oldFill);
+        textObject.oldFill = null;
+      }
+
+      switch (animateType) {
+        case undefined:
+          return;
+        case 'scale':
+          animateScale();
+          textObject.animateInterval = setInterval(animateScale, 700);
+          break;
+        case 'flash':
+          animateFlash();
+          textObject.animateInterval = setInterval(animateFlash, 700);
+          break;
+        case 'shake':
+          animateShake();
+          textObject.animateInterval = setInterval(animateShake, 700);
+          break;
+        case 'gradient':
+          textObject.oldFill = textObject.fill;
+          window.canvas.renderAll();
+          animateGradient();
+          textObject.animateInterval = setInterval(animateGradient, 700);
+        default:
+          return;
+      }
+
+      function animate(startProperties: any, endProperties: any) {
+        textObject?.animate(startProperties, {
+          duration: 300,
+          onChange: window.canvas.renderAll.bind(window.canvas),
+          onComplete: () => {
+            textObject?.animate(endProperties, {
+              duration: 300,
+              onChange: window.canvas.renderAll.bind(window.canvas),
+            });
           },
+        });
+      }
+
+      function animateScale() {
+        animate({ scaleX: '+=0.3', scaleY: '+=0.3' }, { scaleX: '-=0.3', scaleY: '-=0.3' });
+      }
+
+      function animateShake() {
+        animate({ top: '-=7' }, { top: '+=7' });
+      }
+
+      function animateFlash() {
+        animate({ opacity: 0 }, { opacity: 1 });
+      }
+
+      function animateGradient() {
+        textObject.setGradient('fill', {
+          x1: 0,
+          x2: textObject.width,
+          colorStops: {
+            0: '#1e5799',
+            0.2: '#2ce0bf',
+            0.4: '#76dd2c',
+            0.6: '#dba62b',
+            0.8: '#e02cbf',
+            1: '#1e5799',
+          },
+        });
+        textObject?.animate(
+          { opacity: 1 },
           {
-            duration: 600,
-            by: 0.3,
+            duration: 300,
             onChange: window.canvas.renderAll.bind(window.canvas),
-            onComplete: () => {},
+            onComplete: () => {
+              textObject.setGradient('fill', {
+                x1: 0,
+                x2: 500,
+                colorStops: {
+                  0: '#1e5799',
+                  0.2: '#2ce0bf',
+                  0.4: '#76dd2c',
+                  0.6: '#dba62b',
+                  0.8: '#e02cbf',
+                  1: '#1e5799',
+                },
+              });
+              textObject?.animate(
+                { opacity: 1 },
+                {
+                  duration: 300,
+                  onChange: window.canvas.renderAll.bind(window.canvas),
+                },
+              );
+            },
           },
         );
-      }, 600);
+      }
     }
 
     function handleSelectFontStyle(fontStyle: string) {
@@ -171,17 +297,18 @@ export default connect(({ global }: any) => ({
             <div>
               <Popover
                 placement="rightTop"
+                trigger="click"
                 content={
                   <SketchPicker
-                    color={color}
+                    color={color || activeObject?.oldFill || activeObject?.fill}
                     onSwatchHover={handleChangeColor}
                     onChangeComplete={handleChangeColor}
                   />
                 }
               >
-                <div
+                <Button
                   className={styles.colorPicker}
-                  style={{ backgroundColor: activeObject?.fill || color }}
+                  style={{ backgroundColor: activeObject?.oldFill || activeObject?.fill || '#f00' }}
                 />
               </Popover>
             </div>
@@ -236,22 +363,21 @@ export default connect(({ global }: any) => ({
         <div className={styles.text__effect}>
           <h3>字体动效</h3>
           <ul className={styles.effect__list}>
-            <li
-              className={styles.effect__item}
-              style={{ backgroundColor: 'var(--antd-wave-shadow-color)' }}
-              onClick={handleTextEffectClick}
-            >
-              无
-            </li>
-            <li className={styles.effect__item} onClick={handleTextEffectClick}>
-              <p>缩放</p>
-            </li>
-            <li className={styles.effect__item}>
-              <p>闪烁</p>
-            </li>
-            <li className={styles.effect__item}>
-              <p>抖动</p>
-            </li>
+            {effects.map((item, index) => (
+              <li
+                className={styles.effect__item}
+                style={{
+                  backgroundColor:
+                    activeObject?.animateType === item.animate
+                      ? 'var(--antd-wave-shadow-color)'
+                      : '',
+                }}
+                onClick={() => handleTextEffectClick(item.animate)}
+                key={index}
+              >
+                <p>{item.title}</p>
+              </li>
+            ))}
           </ul>
         </div>
       </div>

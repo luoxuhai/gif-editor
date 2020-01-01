@@ -28,6 +28,7 @@ class Index extends Component<Props> {
   state: State = { visible: false, GIFImage: '', progress: 0, status: Status.cut };
 
   tempInterval: any = null;
+  i: number = 0;
 
   componentDidMount() {
     function catchEvent(e: Event) {
@@ -58,12 +59,35 @@ class Index extends Component<Props> {
     download(this.state.GIFImage, `${this.props.GIFInfo.name}-${Date.now()}.gif`);
   };
 
+  drawerGIFInterval = () => {
+    const { canvasImages } = this.props;
+    if (this.i >= canvasImages.length) this.i = 0;
+    // TODO: 防止闪烁
+    for (const index of canvasImages.keys()) {
+      let visible: boolean = false;
+      if (index === this.i) visible = true;
+      canvasImages[index].setOptions({
+        visible,
+      });
+    }
+    this.i++;
+
+    try {
+      window.canvas?.renderAll();
+    } catch (e) {}
+  };
+
   handleCancel = () => {
+    const {
+      GIFInfo: { interval },
+      speed,
+    } = this.props;
     this.setState({
       visible: false,
       GIFImage: '',
     });
     clearInterval(this.tempInterval);
+    window.interval = setInterval(this.drawerGIFInterval, interval / speed);
   };
 
   generateGIF = () => {
@@ -72,55 +96,50 @@ class Index extends Component<Props> {
       speed,
       canvasImages,
     } = this.props;
-    const { CANVAS_WIDTH } = window;
+    const allObject: any = window.canvas.getObjects();
+    const dataImages: Array<any> = [];
+    let i: number = 0;
 
-    window.hiddenCanvas = new fabric.Canvas('hiddenCanvas', { selection: false });
-    window.hiddenCanvas.setWidth(CANVAS_WIDTH).setHeight((height * CANVAS_WIDTH) / width);
+    clearInterval(window.interval);
 
-    window.hiddenCanvas.loadFromJSON(window.canvas.toObject(), () => {
-      const allObject: any = window.hiddenCanvas.getObjects();
-      const dataImages: Array<any> = [];
-      let i: number = 0;
-
-      this.tempInterval = setInterval(() => {
-        if (i >= canvasImages.length) {
-          clearInterval(this.tempInterval);
-          this.setState({
-            status: Status.generate,
-          });
-          createGIF(dataImages, {
-            gifWidth: outWidth,
-            gifHeight: (height * outWidth) / width,
-            interval: interval / speed / 1000,
-            sampleInterval: quality,
-            progressCallback: (progress: number) =>
-              this.setState({
-                progress,
-              }),
-          }).then(value => {
+    this.tempInterval = setInterval(() => {
+      if (i >= canvasImages.length) {
+        clearInterval(this.tempInterval);
+        this.setState({
+          status: Status.generate,
+        });
+        createGIF(dataImages, {
+          gifWidth: outWidth,
+          gifHeight: (height * outWidth) / width,
+          interval: interval / speed / 1000,
+          sampleInterval: quality,
+          progressCallback: (progress: number) =>
             this.setState({
-              GIFImage: value,
-              progress: 0,
-              status: Status.cut,
-            });
-            dataImages.slice(0);
+              progress,
+            }),
+        }).then(value => {
+          this.setState({
+            GIFImage: value,
+            progress: 0,
+            status: Status.cut,
           });
-          return;
-        }
-        // TODO: 防止闪烁
-        for (const index of canvasImages.keys()) {
-          let visible: boolean = false;
-          if (index === i) visible = true;
-          allObject[index].set('visible', visible);
-        }
-        i++;
+          dataImages.slice(0);
+        });
+        return;
+      }
+      // TODO: 防止闪烁
+      for (const index of canvasImages.keys()) {
+        let visible: boolean = false;
+        if (index === i) visible = true;
+        allObject[index].set('visible', visible);
+      }
+      i++;
 
-        try {
-          window.canvas.renderAll();
-          dataImages.push(window.hiddenCanvas.toDataURL());
-        } catch (e) {}
-      }, interval * speed);
-    });
+      try {
+        window.canvas.renderAll();
+        dataImages.push(window.canvas.toDataURL());
+      } catch (e) {}
+    }, interval / speed);
   };
 
   render() {
@@ -133,7 +152,7 @@ class Index extends Component<Props> {
             <Canvas />
           </Col>
           <Col id="editor" className={styles.editor} lg={14} md={24}>
-            <Tabs style={{ minHeight: 450 }} defaultActiveKey="4">
+            <Tabs style={{ minHeight: 450 }} defaultActiveKey="1">
               <Tabs.TabPane tab="图片属性" key="1">
                 <Attribute />
               </Tabs.TabPane>
@@ -175,7 +194,9 @@ class Index extends Component<Props> {
             ) : (
               <Spin
                 tip={
-                  status === Status.cut ? '截取图片中...' : `生成GIF中 ${(progress * 100).toFixed()}%`
+                  status === Status.cut
+                    ? '截取图片中...'
+                    : `生成GIF中 ${(progress * 100).toFixed()}%`
                 }
               />
             )}
