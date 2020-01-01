@@ -96,7 +96,6 @@ class Index extends Component<Props> {
       speed,
       canvasImages,
     } = this.props;
-    const allObject: any = window.canvas.getObjects();
     const dataImages: Array<any> = [];
     let i: number = 0;
 
@@ -131,15 +130,14 @@ class Index extends Component<Props> {
       for (const index of canvasImages.keys()) {
         let visible: boolean = false;
         if (index === i) visible = true;
-        allObject[index].set('visible', visible);
+        canvasImages[index].set('visible', visible);
       }
       i++;
 
       try {
-        window.canvas.renderAll();
         dataImages.push(window.canvas.toDataURL());
       } catch (e) {}
-    }, interval / speed);
+    }, 40);
   };
 
   render() {
@@ -153,7 +151,7 @@ class Index extends Component<Props> {
           </Col>
           <Col id="editor" className={styles.editor} lg={14} md={24}>
             <Tabs style={{ minHeight: 450 }} defaultActiveKey="1">
-              <Tabs.TabPane tab="图片属性" key="1">
+              <Tabs.TabPane tab="GIF属性" key="1">
                 <Attribute />
               </Tabs.TabPane>
               <Tabs.TabPane tab="GIF滤镜" key="3">

@@ -7,4 +7,4 @@
 - 文字动效
 - 贴纸水印
 
-Copyright (c) 2019-present, [Darkce](2639415619@qq.com)
+Copyright (c) 2019-present, [Darkce](https://github.com/luoxuhai)

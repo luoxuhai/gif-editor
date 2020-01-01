@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Slider, Select } from 'antd';
+import { Slider, Select, Button } from 'antd';
 import { connect } from 'dva';
 import styles from './Attribute.less';
 
@@ -10,7 +10,7 @@ const marks: any = {
   3: '3x',
 };
 
-const measures: Array<any> = [
+const measures: any[] = [
   {
     title: '240P(适合表情分享)',
     width: 240,
@@ -29,7 +29,7 @@ const measures: Array<any> = [
   },
 ];
 
-const qualitys: Array<any> = [
+const qualitys: any[] = [
   {
     title: '压缩',
     value: 500,
@@ -48,11 +48,22 @@ const qualitys: Array<any> = [
   },
 ];
 
+const playEffects: any[] = [
+  {
+    title: '正常',
+    playEffect: 'normal',
+  },
+  {
+    title: '倒放',
+    playEffect: 'upend',
+  },
+];
+
 export default connect(({ global }: any) => ({ ...global }))(
-  ({ images, canvasImages, GIFInfo, speed, dispatch }: Props): JSX.Element => {
+  ({ canvasImages, GIFInfo, speed, dispatch }: Props): JSX.Element => {
     let i: number = 0;
     function drawerGIFInterval() {
-      if (i >= images.length) i = 0;
+      if (i >= canvasImages.length) i = 0;
       // TODO: 防止闪烁
       for (const index of canvasImages.keys()) {
         let visible: boolean = false;
@@ -72,6 +83,20 @@ export default connect(({ global }: any) => ({ ...global }))(
       dispatch({
         type: 'global/setSpeed',
         payload: speed,
+      });
+
+      clearInterval(window.interval);
+      window.interval = setInterval(drawerGIFInterval, GIFInfo.interval / speed);
+    }
+
+    function handlePlayEffectClick(playEffect: string) {
+      dispatch({
+        type: 'global/saveGIFInfo',
+        payload: { playEffect },
+      });
+      dispatch({
+        type: 'global/saveGIFImages',
+        payload: { canvasImages: canvasImages.reverse() },
       });
 
       clearInterval(window.interval);
@@ -125,7 +150,7 @@ export default connect(({ global }: any) => ({ ...global }))(
                   payload: { quality },
                 })
               }
-              defaultValue={10}
+              defaultValue={250}
               style={{ width: 120 }}
             >
               {qualitys.map(quality => (
@@ -135,6 +160,24 @@ export default connect(({ global }: any) => ({ ...global }))(
               ))}
             </Select>
           </div>
+        </div>
+        <h3>播放效果</h3>
+        <div>
+          <ul className={styles.playEffect__list}>
+            {playEffects.map(item => (
+              <li
+                className={styles.playEffect__item}
+                style={{
+                  backgroundColor:
+                    GIFInfo.playEffect === item.playEffect ? 'var(--antd-wave-shadow-color)' : '',
+                }}
+                onClick={() => handlePlayEffectClick(item.playEffect)}
+                key={item.playEffect}
+              >
+                {item.title}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     );

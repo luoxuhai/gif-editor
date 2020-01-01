@@ -1,5 +1,11 @@
+@import '../../utils//utils.less';
+
 .attribute {
   padding: 20px 0;
+
+  & > div {
+    margin-bottom: 25px;
+  }
   .speedSlider {
     width: 80%;
     margin-bottom: 90px;
@@ -10,6 +16,24 @@
 
     .measure {
       margin-right: 50px;
+    }
+  }
+
+  .playEffect__list {
+    display: flex;
+    padding: 0;
+    list-style: none;
+
+    .playEffect__item {
+      .center;
+      width: 70px;
+      height: 40px;
+      margin-right: 20px;
+      border-radius: 2px;
+      background: rgba(43, 45, 55, 0.541);
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
     }
   }
 }

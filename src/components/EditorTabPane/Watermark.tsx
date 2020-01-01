@@ -5,6 +5,11 @@ import { setCanvasImage } from '../../utils/helper';
 import styles from './Watermark.less';
 
 const watermarks: Array<string> = [
+  require('../../assets/56dbfbd8-3ddf-4be3-9037-e23d8f6a748d_medium_thumb.jpg'),
+  require('../../assets/f915ebfe-b410-4fa5-99dd-a0e387293666_medium_thumb.jpg'),
+  require('../../assets/c910a066-4927-4039-835f-b559ee2dd066_medium_thumb.jpg'),
+  require('../../assets/0cef5f7c-eb4d-4923-ab58-9b9bde50a1e6_medium_thumb.png'),
+  require('../../assets/de4fccf4-39f9-4cdf-a44f-5d32a5e1900a_medium_thumb.jpg'),
   require('../../assets/HMPcMDDHzqXH5VhLy6Y880TlFWxHnjFD.png'),
   require('../../assets/6xLqZTO3Jv5eXbZtbyKblGUbE69giIWh.png'),
   require('../../assets/fCrr5jm1m4OEsauFfXNptLxE4ltjrWvS.png'),

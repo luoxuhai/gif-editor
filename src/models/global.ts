@@ -4,7 +4,15 @@ export default {
   namespace: 'global',
 
   state: {
-    GIFInfo: { name: '', width: 420, height: 420, outWidth: 360, quality: 10, interval: 41 },
+    GIFInfo: {
+      name: '',
+      width: 420,
+      height: 420,
+      outWidth: 360,
+      quality: 250,
+      interval: 41,
+      playEffect: 'normal',
+    },
     GIFOptions: {
       filter: {
         filterObject: null,
@@ -12,7 +20,6 @@ export default {
       },
     },
     activeObject: null,
-    images: [],
     canvasImages: [],
     speed: 1,
   },
@@ -39,10 +46,9 @@ export default {
       return { ...state, activeObject: window.canvas.getActiveObject() };
     },
 
-    saveGIFImages(state: any, { payload: { images, canvasImages } }: any) {
+    saveGIFImages(state: any, { payload: { canvasImages } }: any) {
       return {
         ...state,
-        images: images || state.images,
         canvasImages: canvasImages || state.canvasImages,
       };
     },
@@ -55,7 +61,6 @@ export default {
       return {
         ...state,
         canvasImages: [],
-        images: [],
         GIFOptions: {
           filter: {
             filterObject: null,

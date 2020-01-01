@@ -78,7 +78,7 @@ const filters = [
 ];
 
 export default connect(({ global }: any) => ({ ...global }))(
-  ({ images, GIFOptions, canvasImages, dispatch }: Props): JSX.Element => {
+  ({ GIFOptions, canvasImages, dispatch }: Props): JSX.Element => {
     function handleSelectFilter(filter: any) {
       // 应用滤镜
       canvasImages.forEach((image: any) => {
@@ -108,7 +108,7 @@ export default connect(({ global }: any) => ({ ...global }))(
               <img
                 className={styles.filter__img}
                 style={{ filter: item.filter.css }}
-                src={images[0]?.url}
+                src={canvasImages[3]?._originalElement.src}
               />
               <Tag
                 className={styles.filter__tag}

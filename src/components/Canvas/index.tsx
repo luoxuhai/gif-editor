@@ -18,7 +18,7 @@ export default connect(({ global }: any) => ({ ...global }))(
       originX: 'left',
       originY: 'top',
     };
-    let images: Array<any> = [];
+    let images: any[] = [];
     let i: number = 0;
 
     function drawerGIFInterval() {
@@ -40,12 +40,15 @@ export default connect(({ global }: any) => ({ ...global }))(
 
     async function drawerGIF() {
       message.success({ content: '加载完成!', key: 'updatable', duration: 2 });
-
+      dispatch({
+        type: 'global/saveGIFInfo',
+        payload: { playEffect: 'normal' },
+      });
       canvasImages = await Promise.all(
-        images.map((img: any) => {
+        images.map((image: any) => {
           return new Promise(resolve => {
             fabric.Image.fromURL(
-              img.url,
+              image,
               (oImg: any) => {
                 window.canvas.add(oImg);
                 resolve(oImg);
@@ -60,6 +63,7 @@ export default connect(({ global }: any) => ({ ...global }))(
         type: 'global/saveGIFImages',
         payload: { canvasImages },
       });
+      images.splice(0);
       window.interval = setInterval(drawerGIFInterval, GIFInfo.interval);
     }
 
@@ -112,16 +116,8 @@ export default connect(({ global }: any) => ({ ...global }))(
           gif.move_to(i);
           const file = canvasToFile(gif.get_canvas(), `gif-${i}`);
           // 将每一帧的canvas转换成file对象
-          images.push({
-            name: file.name,
-            url: URL.createObjectURL(file),
-            file,
-          });
+          images.push(URL.createObjectURL(file));
         }
-        dispatch({
-          type: 'global/saveGIFImages',
-          payload: { images },
-        });
         drawerGIF();
       });
     }
@@ -168,7 +164,7 @@ export default connect(({ global }: any) => ({ ...global }))(
             <Upload {...uploadProps}>
               <Button className={styles.uploadLine} type="primary" size="large">
                 <Icon type="upload" />
-                更换图片
+                更换GIF
               </Button>
             </Upload>
           </div>
