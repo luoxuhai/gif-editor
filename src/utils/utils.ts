@@ -1,5 +1,17 @@
 import gifshot from 'gifshot';
 
+export function base64ToBlob(base64: string) {
+  var arr = base64.split(',');
+  let mime: any = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]),
+    n = bstr.length,
+    u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return URL.createObjectURL(new Blob([u8arr], { type: mime }));
+}
+
 export function canvasToFile(canvas: any, filename: string): File {
   const arr = canvas.toDataURL('image/png').split(',');
   const mime = arr[0].match(/:(.*?);/)[1];
@@ -15,12 +27,11 @@ export function createGIF(images: Array<string>, options: object): Promise<Funct
     gifshot.createGIF(
       {
         images,
-        numWorkers: 5,
         ...options,
       },
-      (obj: any) => {
-        if (!obj.error) resolve(obj.image);
-        else reject(obj.error);
+      (res: any) => {
+        if (!res.error) resolve(res.image);
+        else reject(res.error);
       },
     );
   });
@@ -74,10 +85,13 @@ export function containImg(
  * @param {String} fileName 文件名
  */
 export function download(src: string, fileName: string) {
-  const downloadElement = document.createElement('a');
-  downloadElement.href = src;
-  downloadElement.download = fileName;
-  downloadElement.click();
+  const el = document.createElement('a');
+  el.href = base64ToBlob(src);
+  el.download = fileName;
+  el.style.display = 'none';
+  document.body.appendChild(el);
+  el.click();
+  document.body.removeChild(el);
 }
 
 export function setTimeoutSync(time: number) {

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { connect } from 'dva';
-import { Tag } from 'antd';
+import { Tag, message } from 'antd';
 import { fabric } from 'fabric';
 import styles from './Filter.less';
+import { setTimeoutSync } from '../../utils/utils';
+import defaultImage from '../../assets/filter.jpg';
 
 const filters = [
   {
@@ -79,19 +81,22 @@ const filters = [
 
 export default connect(({ global }: any) => ({ ...global }))(
   ({ GIFOptions, canvasImages, dispatch }: Props): JSX.Element => {
-    function handleSelectFilter(filter: any) {
-      // 应用滤镜
-      canvasImages.forEach((image: any) => {
-        image.filters = [filter.filterObject];
-        image.applyFilters();
-      });
-
+    async function handleSelectFilter(filter: any) {
+      message.loading({ content: '应用滤镜中...', key: 'filterLoading', duration: 0 });
       dispatch({
         type: 'global/setGIFOptions',
         payload: {
           filter,
         },
       });
+      // 应用滤镜
+      for (const image of canvasImages) {
+        image.filters = [filter.filterObject];
+        image.applyFilters();
+        await setTimeoutSync(8);
+      }
+
+      message.destroy();
     }
 
     return (
@@ -108,7 +113,7 @@ export default connect(({ global }: any) => ({ ...global }))(
               <img
                 className={styles.filter__img}
                 style={{ filter: item.filter.css }}
-                src={canvasImages[3]?._originalElement.src}
+                src={canvasImages[3]?._originalElement.src || defaultImage}
               />
               <Tag
                 className={styles.filter__tag}

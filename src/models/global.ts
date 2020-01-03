@@ -8,7 +8,7 @@ export default {
       name: '',
       width: 420,
       height: 420,
-      outWidth: 360,
+      outWidth: 240,
       quality: 250,
       interval: 41,
       playEffect: 'normal',

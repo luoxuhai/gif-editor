@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Icon, Button, message, Spin } from 'antd';
+import { Upload, Icon, Button, message, Modal } from 'antd';
 import { connect } from 'dva';
 import { fabric } from 'fabric';
 import SuperGif from 'libgif';
@@ -8,6 +8,7 @@ import styles from './index.less';
 
 const { CANVAS_WIDTH } = window;
 let canvasHeight: number = window.CANVAS_WIDTH;
+let modal: any;
 
 export default connect(({ global }: any) => ({ ...global }))(
   ({ canvasImages, GIFInfo, dispatch }: Props): JSX.Element => {
@@ -39,6 +40,7 @@ export default connect(({ global }: any) => ({ ...global }))(
     }
 
     async function drawerGIF() {
+      modal.destroy();
       message.success({ content: '加载完成!', key: 'updatable', duration: 2 });
       dispatch({
         type: 'global/saveGIFInfo',
@@ -138,21 +140,31 @@ export default connect(({ global }: any) => ({ ...global }))(
     useEffect(() => {}, []);
 
     async function handleUploadGIF({ file }: any) {
+      message.loading({ content: '加载中...', key: 'updatable', duration: 0 });
       if (file.status !== 'uploading') {
         const { originFileObj } = file;
-        if (!/(\.*.gif$)/.test(originFileObj.name)) message.error('请上传gif格式照片！');
-        else {
-          message.loading({ content: '加载中...', key: 'updatable', duration: 0 });
-          clear();
-          await resolveGIF(originFileObj);
-          setFile(file);
-          initCanvas();
-          GIFInfo.name = originFileObj.name.split('.')[0];
-        }
+
+        if (originFileObj.size >= 1024 * 5 * 1024)
+          modal = Modal.warning({
+            title: '温馨提示',
+            content: '文件较大，加载较慢，请耐心等待...',
+            maskClosable: true,
+          });
+
+        clear();
+        await resolveGIF(originFileObj);
+        setFile(file);
+        initCanvas();
+        GIFInfo.name = originFileObj.name.split('.')[0];
       }
     }
 
-    const uploadProps = { multiple: false, showUploadList: false, onChange: handleUploadGIF };
+    const uploadProps = {
+      multiple: false,
+      showUploadList: false,
+      accept: 'image/gif',
+      onChange: handleUploadGIF,
+    };
 
     return (
       <div>

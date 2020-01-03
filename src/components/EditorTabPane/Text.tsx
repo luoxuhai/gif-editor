@@ -119,25 +119,22 @@ export default connect(({ global }: any) => ({
     function handleUploadFont({ file }: any) {
       if (file.status !== 'uploading') {
         const { originFileObj } = file;
-        if (!/(\.*.ttf$)/.test(originFileObj.name)) message.error('仅支持ttf格式的字体文件！');
-        else {
-          const newStyle: Element = document.createElement('style');
-          const fontFamily: string = file.name.split('.')[0];
+        const newStyle: Element = document.createElement('style');
+        const fontFamily: string = file.name.split('.')[0];
 
-          newStyle.appendChild(
-            document.createTextNode(`
+        newStyle.appendChild(
+          document.createTextNode(`
             @font-face {
                 font-family: "${fontFamily}";
                 src: url("${URL.createObjectURL(originFileObj)}") format("truetype");
             }`),
-          );
-          document.head.appendChild(newStyle);
+        );
+        document.head.appendChild(newStyle);
 
-          setCustomFont([...customFont, { name: fontFamily, fontFamily }]);
-          // 选中字体
-          handleSelectFontFamily(fontFamily);
-          message.success({ content: '加载成功' });
-        }
+        setCustomFont([...customFont, { name: fontFamily, fontFamily }]);
+        // 选中字体
+        handleSelectFontFamily(fontFamily);
+        message.success({ content: '加载成功' });
       }
     }
 
@@ -155,6 +152,7 @@ export default connect(({ global }: any) => ({
         .getObjects()
         .filter((e: any) => e.type === 'textbox' && _.isEqual(activeObject, e));
 
+      if (!textObject) return;
       // 清除遗留定时器
       clearInterval(textObject?.animateInterval);
       textObject.animateType = animateType;
@@ -176,7 +174,7 @@ export default connect(({ global }: any) => ({
           return;
         case 'scale':
           animateScale();
-          textObject.animateInterval = setInterval(animateScale, 700);
+          textObject.animateInterval = setInterval(animateScale, 800);
           break;
         case 'flash':
           animateFlash();
@@ -353,7 +351,7 @@ export default connect(({ global }: any) => ({
               {defaultFont.map(font => SelectOption(font.fontFamily, font.name))}
             </Select.OptGroup>
           </Select>
-          <Upload onChange={handleUploadFont} multiple={false} showUploadList={false}>
+          <Upload onChange={handleUploadFont} multiple={false} showUploadList={false} accept=".ttf">
             <Button className={styles.uploadLine} type="primary">
               <Icon type="upload" />
               本地字体

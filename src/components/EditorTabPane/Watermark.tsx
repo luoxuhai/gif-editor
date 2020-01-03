@@ -47,12 +47,9 @@ export default connect(({ global }: any) => ({ ...global }))(
     function handleUploadImage({ file }: any) {
       if (file.status !== 'uploading') {
         const { originFileObj } = file;
-        if (!/(\.*.jpg$)|(\.*.png$)|(\.*.jpeg$)|(\.*.bmp$)/.test(originFileObj.name))
-          message.error('仅支持jpg/jpeg/png/bmp格式的照片！');
-        else {
-          setCanvasImage(URL.createObjectURL(originFileObj));
-          message.success({ content: '加载成功' });
-        }
+
+        setCanvasImage(URL.createObjectURL(originFileObj));
+        message.success({ content: '加载成功' });
       }
     }
 
@@ -83,7 +80,11 @@ export default connect(({ global }: any) => ({ ...global }))(
         </div>
         <div>
           <h3>自定义贴纸</h3>
-          <Upload showUploadList={false} onChange={handleUploadImage}>
+          <Upload
+            showUploadList={false}
+            onChange={handleUploadImage}
+            accept=".jpg, .jpeg, .png, .bmp, .tif, .tiff"
+          >
             <Button className={styles.uploadLine} type="primary">
               <Icon type="upload" />
               使用本地贴纸
