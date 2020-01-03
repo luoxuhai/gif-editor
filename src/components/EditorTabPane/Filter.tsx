@@ -113,7 +113,7 @@ export default connect(({ global }: any) => ({ ...global }))(
               <img
                 className={styles.filter__img}
                 style={{ filter: item.filter.css }}
-                src={canvasImages[3]?._originalElement.src || defaultImage}
+                src={canvasImages[canvasImages.length / 2]?._originalElement.src || defaultImage}
               />
               <Tag
                 className={styles.filter__tag}

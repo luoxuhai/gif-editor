@@ -40,7 +40,7 @@ export default connect(({ global }: any) => ({ ...global }))(
     }
 
     async function drawerGIF() {
-      modal.destroy();
+      modal?.destroy();
       message.success({ content: '加载完成!', key: 'updatable', duration: 2 });
       dispatch({
         type: 'global/saveGIFInfo',
