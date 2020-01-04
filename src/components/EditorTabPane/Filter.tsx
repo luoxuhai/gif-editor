@@ -4,7 +4,7 @@ import { Tag, message } from 'antd';
 import { fabric } from 'fabric';
 import styles from './Filter.less';
 import { setTimeoutSync } from '../../utils/utils';
-import defaultImage from '../../assets/filter.jpg';
+import defaultImage from '../../assets/filter-2.jpg';
 
 const filters = [
   {

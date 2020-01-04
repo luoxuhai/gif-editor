@@ -8,7 +8,6 @@ import styles from './index.less';
 
 const { CANVAS_WIDTH } = window;
 let canvasHeight: number = window.CANVAS_WIDTH;
-let modal: any;
 
 export default connect(({ global }: any) => ({ ...global }))(
   ({ canvasImages, GIFInfo, dispatch }: Props): JSX.Element => {
@@ -40,7 +39,6 @@ export default connect(({ global }: any) => ({ ...global }))(
     }
 
     async function drawerGIF() {
-      modal?.destroy();
       message.success({ content: '加载完成!', key: 'updatable', duration: 2 });
       dispatch({
         type: 'global/saveGIFInfo',
@@ -140,17 +138,14 @@ export default connect(({ global }: any) => ({ ...global }))(
     useEffect(() => {}, []);
 
     async function handleUploadGIF({ file }: any) {
-      message.loading({ content: '加载中...', key: 'updatable', duration: 0 });
+      const { originFileObj } = file;
+      message.loading({
+        content:
+          originFileObj.size >= 1024 * 5 * 1024 ? '文件较大，加载较慢，请耐心等待...' : '加载中...',
+        key: 'updatable',
+        duration: 0,
+      });
       if (file.status !== 'uploading') {
-        const { originFileObj } = file;
-
-        if (originFileObj.size >= 1024 * 5 * 1024)
-          modal = Modal.warning({
-            title: '温馨提示',
-            content: '文件较大，加载较慢，请耐心等待...',
-            maskClosable: true,
-          });
-
         clear();
         await resolveGIF(originFileObj);
         setFile(file);

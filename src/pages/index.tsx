@@ -31,12 +31,13 @@ class Index extends Component<Props> {
   i: number = 0;
 
   componentDidMount() {
+    const { canvasImages } = this.props;
     function catchEvent(e: Event) {
-      if (!window.canvas) {
+      if (!canvasImages.length) {
         if (e.type === 'click')
           Modal.warning({
             title: '提示',
-            content: '请上传GIF动图!',
+            content: window.canvas ? '图片正在上传中, 请稍后再试!' : '请上传GIF动图!',
           });
         e.stopPropagation();
       }
