@@ -31,9 +31,8 @@ class Index extends Component<Props> {
   i: number = 0;
 
   componentDidMount() {
-    const { canvasImages } = this.props;
-    function catchEvent(e: Event) {
-      if (!canvasImages.length) {
+    const catchEvent = (e: Event) => {
+      if (!this.props.canvasImages.length) {
         if (e.type === 'click')
           Modal.warning({
             title: '提示',
@@ -41,7 +40,7 @@ class Index extends Component<Props> {
           });
         e.stopPropagation();
       }
-    }
+    };
     document.querySelectorAll('.ant-tabs-tabpane').forEach(el => {
       el.addEventListener('click', catchEvent, true);
     });

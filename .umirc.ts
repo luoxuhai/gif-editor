@@ -5,7 +5,7 @@ const config: IConfig = {
   treeShaking: true,
   history: 'hash',
   base: './',
-  publicPath: './',
+  publicPath: 'http://www.nicetool.net/static/gifedit/',
   routes: [
     {
       path: '/',
