@@ -137,28 +137,31 @@ export default connect(({ global }: any) => ({ ...global }))(
 
     useEffect(() => {}, []);
 
-    async function handleUploadGIF({ file }: any) {
-      const { originFileObj } = file;
+    async function handleUploadGIF(file: File) {
+      if (!/(\.*.gif$)/i.test(file.name)) {
+        message.error({
+          content: '仅支持GIF格式',
+        });
+        return false;
+      }
       message.loading({
-        content:
-          originFileObj.size >= 1024 * 5 * 1024 ? '文件较大，加载较慢，请耐心等待...' : '加载中...',
+        content: file.size >= 1024 * 5 * 1024 ? '文件较大，加载较慢，请耐心等待...' : '加载中...',
         key: 'updatable',
         duration: 0,
       });
-      if (file.status !== 'uploading') {
-        clear();
-        await resolveGIF(originFileObj);
-        setFile(file);
-        initCanvas();
-        GIFInfo.name = originFileObj.name.split('.')[0];
-      }
+      clear();
+      await resolveGIF(file);
+      setFile(file);
+      initCanvas();
+      GIFInfo.name = file.name.split('.')[0];
+      return false;
     }
 
     const uploadProps = {
       multiple: false,
       showUploadList: false,
       accept: 'image/gif',
-      onChange: handleUploadGIF,
+      beforeUpload: handleUploadGIF,
     };
 
     return (

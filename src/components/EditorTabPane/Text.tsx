@@ -116,26 +116,29 @@ export default connect(({ global }: any) => ({
       });
     }
 
-    function handleUploadFont({ file }: any) {
-      if (file.status !== 'uploading') {
-        const { originFileObj } = file;
-        const newStyle: Element = document.createElement('style');
-        const fontFamily: string = file.name.split('.')[0];
-
-        newStyle.appendChild(
-          document.createTextNode(`
+    function handleUploadFont(file: File) {
+      const newStyle: Element = document.createElement('style');
+      const fontFamily: string = file.name.split('.')[0];
+      if (!/(\.*.ttf$)/i.test(file.name)) {
+        message.error({
+          content: '仅支持ttf格式',
+        });
+        return false;
+      }
+      newStyle.appendChild(
+        document.createTextNode(`
             @font-face {
                 font-family: "${fontFamily}";
-                src: url("${URL.createObjectURL(originFileObj)}") format("truetype");
+                src: url("${URL.createObjectURL(file)}") format("truetype");
             }`),
-        );
-        document.head.appendChild(newStyle);
+      );
+      document.head.appendChild(newStyle);
 
-        setCustomFont([...customFont, { name: fontFamily, fontFamily }]);
-        // 选中字体
-        handleSelectFontFamily(fontFamily);
-        message.success({ content: '加载成功' });
-      }
+      setCustomFont([...customFont, { name: fontFamily, fontFamily }]);
+      // 选中字体
+      handleSelectFontFamily(fontFamily);
+      message.success({ content: '加载成功' });
+      return false;
     }
 
     function SelectOption(fontFamily: string, name: string): JSX.Element {
@@ -351,7 +354,12 @@ export default connect(({ global }: any) => ({
               {defaultFont.map(font => SelectOption(font.fontFamily, font.name))}
             </Select.OptGroup>
           </Select>
-          <Upload onChange={handleUploadFont} multiple={false} showUploadList={false} accept=".ttf">
+          <Upload
+            beforeUpload={handleUploadFont}
+            multiple={false}
+            showUploadList={false}
+            accept=".ttf"
+          >
             <Button className={styles.uploadLine} type="primary">
               <Icon type="upload" />
               本地字体

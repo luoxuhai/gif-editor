@@ -17,3 +17,25 @@ body {
 .canvas-container:nth-child(2) {
   display: none;
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  padding: 0 2px;
+  background-color: #e4e7ed;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #c0c4cc;
+  min-height: 25px;
+  min-width: 25px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #909399;
+}
